@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boosters Reality Fracture</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1b1e27;
+    --panel-2: #232735;
+    --text: #e8e9ee;
+    --muted: #9aa0b2;
+    --accent: #7c9cff;
+    --echo: #7cd6c0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 16px;
+  }
+  h1 { font-size: 22px; margin: 0 0 10px; }
+  header, main, footer { max-width: 1600px; margin: 0 auto; }
+  header { margin-bottom: 18px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    background: var(--panel-2); color: var(--text); border: 1px solid #343a4d;
+    padding: 9px 14px; border-radius: 8px; font-size: 15px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #0d1020; border-color: var(--accent); font-weight: 600; }
+  .panel { background: var(--panel); border-radius: 10px; padding: 14px; }
+  .booster { margin-bottom: 16px; }
+  .booster-title { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
+  .booster-title button { font-size: 13px; padding: 5px 10px; }
+  .booster-title button:disabled { opacity: .6; cursor: wait; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .card { position: relative; cursor: zoom-in; }
+  .card img { width: 100%; aspect-ratio: 488 / 680; display: block; border-radius: 10px; background: #0b0d12; }
+  .tag.foil {
+    position: absolute; bottom: 8px; left: 8px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    color: #fff; background: linear-gradient(90deg, #d53f8c, #d69e2e, #38a169, #3182ce); box-shadow: 0 1px 4px rgba(0,0,0,.6);
+  }
+  .tag.rating {
+    position: absolute; top: 8px; left: 8px; right: 8px; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 8px;
+    color: #fff; background: rgba(0,0,0,.75); box-shadow: 0 1px 4px rgba(0,0,0,.6); line-height: 1.25;
+  }
+  .tag.rating small { display: block; font-weight: 400; font-size: 11px; color: #d6d9e3; }
+  .tag.rating.none { color: #b5b9c7; }
+  button.active { border-color: var(--accent); background: #2a3350; }
+  .credit { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+  .credit a { color: var(--accent); }
+  .empty { color: var(--muted); padding: 40px 10px; text-align: center; }
+  #modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 10; cursor: zoom-out; }
+  #modal.open { display: flex; }
+  #modal img { max-height: 90vh; max-width: 92vw; border-radius: 16px; }
+  footer { margin-top: 20px; color: var(--muted); font-size: 12.5px; }
+  footer summary { cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Play Boosters — Reality Fracture</h1>
+  <div class="toolbar">
+    <button class="primary" id="open1">Ouvrir un nouveau booster</button>
+    <button id="toggleRatings">Notes 17Lands</button>
+  </div>
+  <p class="credit" id="credit"></p>
+</header>
+
+<main id="boosters">
+  <div class="panel empty">Aucun booster ouvert. Cliquez sur « Ouvrir un nouveau booster ».</div>
+</main>
+
+<footer>
+  <details>
+    <summary>Structure du booster simulé</summary>
+    <ul>
+      <li>6 communes (1 booster sur 55 : une commune remplacée par une carte Special Guests).</li>
+      <li>1 inhabituelle (3,8 % : série Braintwister). Pas de paires en écho.</li>
+      <li>1 commune ou inhabituelle (23 % commune, 74 % inhabituelle, 3 % Braintwister). Pas de paires en écho.</li>
+      <li>3 cartes « paires en écho » : 2 cartes forment une paire, la 3<sup>e</sup> vient d'une autre paire (88,9 % inhabituelle, 6,7 % rare, 1,4 % mythique, 1,7 % sans bordure inhabituelle, &lt;1 % sans bordure rare ou mythique).</li>
+      <li>1 rare ou mythique (74,4 % rare, 14,8 % mythique, Shattered Mirror 1 % / &lt;1 %, Sculptor's Stronghold 3,8 % / 1 %, Braintwister 3,1 % / &lt;1 %, Portal View 1 %).</li>
+      <li>1 foil traditionnelle (49,5 % commune, 40,5 % inhabituelle, 6 % rare, 1,2 % mythique, traitements &lt;1 % chacun).</li>
+      <li>1 terrain : base (14,6 % / 3,6 % foil), base « tour » (21,8 % / 5,5 % foil), bi-terrain commun (43,6 % / 10,9 % foil).</li>
+      <li>Le jeton ou la carte de compteurs n'est pas simulé. Les taux « &lt;1 % » sont modélisés à 0,5 % (case rare, paires en écho) ou en parts égales du reste (foil : 2,8 % répartis sur 9 traitements).</li>
+    </ul>
+  </details>
+</footer>
+
+<div id="modal"><img id="modalImg" alt=""></div>
+
+<script src="cards.js"></script>
+<script src="sim.js"></script>
+<script src="ratings.js"></script>
+<script>
+(function () {
+  "use strict";
+  const POOLS = SIM.buildPools(window.CARDS);
+  let booster = null;  // the booster on display: { seed, cards }
+  let showRatings = false;
+
+  // 17Lands data (optional, from ratings.js). Cards are ranked by games-in-hand
+  // win rate among cards with at least MIN_GAMES games in hand.
+  const RATINGS = window.RATINGS || null;
+  const MIN_GAMES = 500;   // games in hand needed to be ranked
+  const MIN_SAMPLE = 100;  // games in hand needed to show a win rate
+  const BASICS = new Set(["Plains", "Island", "Swamp", "Mountain", "Forest"]);
+  const RANKED = RATINGS
+    ? Object.entries(RATINGS.cards).filter(([n, r]) => !BASICS.has(n) && r.gih_wr != null && r.gih_n >= MIN_GAMES).sort((a, b) => b[1].gih_wr - a[1].gih_wr)
+    : [];
+  const RANK = new Map(RANKED.map(([name], i) => [name, i + 1]));
+
+  function ratingKey(card) {
+    if (!RATINGS) return null;
+    if (RATINGS.cards[card.en]) return card.en;
+    const front = card.en.split(" // ")[0];
+    return RATINGS.cards[front] ? front : null;
+  }
+  // Basic lands are free in limited, so they get no rating and always sort
+  // last. The "tower" pool holds the alternate-art basics.
+  function isBasic(card) { return card.pool === "basic" || card.pool === "tower"; }
+
+  // Games-in-hand win rate used to sort the booster. Cards without enough
+  // games (or with no 17Lands entry) sort after rated cards, basics after them.
+  function gihWr(card) {
+    if (isBasic(card)) return -2;
+    const key = ratingKey(card);
+    const r = key ? RATINGS.cards[key] : null;
+    return r && r.gih_wr != null && r.gih_n >= MIN_SAMPLE ? r.gih_wr : -1;
+  }
+  function pctFr(x) { return (100 * x).toFixed(1).replace(".", ",") + " %"; }
+  function numFr(x) { return x.toFixed(1).replace(".", ","); }
+
+  function ratingNode(card) {
+    if (isBasic(card)) return null;
+    const key = ratingKey(card);
+    const r = key ? RATINGS.cards[key] : null;
+    const tag = el("span", "tag rating");
+    if (!r || r.gih_wr == null || r.gih_n < MIN_SAMPLE) {
+      tag.classList.add("none");
+      tag.textContent = "17Lands : —";
+      tag.title = "Pas assez de parties avec cette carte";
+      return tag;
+    }
+    const rank = RANK.get(key);
+    const line = el("span");
+    if (rank) {
+      // Colour from red (worst) to green (best) by rank.
+      const p = RANKED.length > 1 ? 1 - (rank - 1) / (RANKED.length - 1) : 1;
+      tag.style.background = "hsla(" + Math.round(120 * p) + ", 55%, 28%, .88)";
+      line.textContent = "GIH " + pctFr(r.gih_wr);
+    } else {
+      line.textContent = "GIH ~" + pctFr(r.gih_wr);
+    }
+    tag.appendChild(line);
+    const detail = el("small");
+    detail.textContent = (rank ? "n° " + rank + "/" + RANKED.length : "échantillon faible") +
+      (r.ata != null ? " · ATA " + numFr(r.ata) : "");
+    tag.appendChild(detail);
+    tag.title = "Games in hand : " + r.gih_n + " parties, victoire " + pctFr(r.gih_wr) +
+      (r.oh_wr != null ? "\nMain de départ : " + pctFr(r.oh_wr) : "") +
+      (r.gp_wr != null ? "\nParties jouées : " + pctFr(r.gp_wr) : "") +
+      (r.iwd != null ? "\nIWD : " + (r.iwd >= 0 ? "+" : "") + pctFr(r.iwd) : "") +
+      (r.ata != null ? "\nATA " + numFr(r.ata) + " · ALSA " + numFr(r.alsa) : "");
+    return tag;
+  }
+
+  function renderCredit() {
+    const p = document.getElementById("credit");
+    const btn = document.getElementById("toggleRatings");
+    if (!RATINGS) {
+      btn.disabled = true;
+      btn.title = "Lancez « python3 -I fetch_ratings.py » pour générer ratings.js";
+      p.textContent = "";
+      return;
+    }
+    const m = RATINGS.meta;
+    const iso = (m.data_dates && m.data_dates.game_data) || m.generated;
+    const date = iso.split("-").reverse().join("/");
+    p.textContent = "";
+    p.append("Notes : d'après les jeux de données publics de ");
+    const a = el("a");
+    a.href = m.source_url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "17Lands";
+    p.appendChild(a);
+    p.append(" (licence CC BY 4.0), " + m.set + " " + m.format + ", " + m.games.toLocaleString("fr-FR") + " parties et " +
+      m.drafts.toLocaleString("fr-FR") + " drafts, données du " + date + ". GIH = taux de victoire quand la carte est en main ; ATA = position moyenne de prise.");
+  }
+  const RARITY_ORDER = { mythic: 0, rare: 1, uncommon: 2, common: 3 };
+
+  // Sort by rarity (mythic first), then by collector number.
+  function sortCards(cards) {
+    return cards.slice().sort((a, b) =>
+      (RARITY_ORDER[a.card.rarity] - RARITY_ORDER[b.card.rarity]) ||
+      (parseInt(a.card.n, 10) - parseInt(b.card.n, 10)));
+  }
+
+  // Cards in display order. The rarity order breaks ties (stable sort).
+  function displayCards(b) {
+    if (!showRatings || !RATINGS) return b.cards;
+    return b.cards.slice().sort((x, y) => gihWr(y.card) - gihWr(x.card));
+  }
+
+  function el(tag, cls) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+  function small(url) { return url.replace("/normal/", "/small/"); }
+  function large(url) { return url.replace("/normal/", "/large/"); }
+
+  function cardNode(s) {
+    const node = el("div", "card");
+    const img = el("img");
+    img.src = s.card.img;
+    img.loading = "lazy";
+    img.alt = s.card.fr;
+    node.appendChild(img);
+    if (s.foil) {
+      const tag = el("span", "tag foil");
+      tag.textContent = "Foil";
+      node.appendChild(tag);
+    }
+    if (showRatings) {
+      const tag = ratingNode(s.card);
+      if (tag) node.appendChild(tag);
+    }
+    node.addEventListener("click", () => openModal(s.card));
+    return node;
+  }
+
+  // The modal first shows the grid image, which the browser already has, so
+  // the previous card never lingers. It swaps to the large version once that
+  // has loaded. The id drops a late load when another card was opened since.
+  let modalOpenId = 0;
+  function openModal(card) {
+    const img = document.getElementById("modalImg");
+    const id = ++modalOpenId;
+    img.src = card.img;
+    img.alt = card.fr;
+    const hi = new Image();
+    hi.onload = () => { if (id === modalOpenId) img.src = hi.src; };
+    hi.src = large(card.img);
+    document.getElementById("modal").classList.add("open");
+  }
+
+  // ---- shareable image: only the cards, drawn on a canvas -----------------
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("image load failed: " + src));
+      img.src = src;
+    });
+  }
+
+  function roundedRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  async function downloadImage(b, button) {
+    const COLS = 7, W = 672, H = 936, GAP = 24, PAD = 32, RADIUS = 32;
+    const cards = displayCards(b);
+    const rows = Math.ceil(cards.length / COLS);
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Génération…";
+    try {
+      const images = await Promise.all(cards.map((s) => loadImage(large(s.card.img))));
+      const canvas = document.createElement("canvas");
+      canvas.width = PAD * 2 + COLS * W + (COLS - 1) * GAP;
+      canvas.height = PAD * 2 + rows * H + (rows - 1) * GAP;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#12141a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      images.forEach((img, i) => {
+        const x = PAD + (i % COLS) * (W + GAP);
+        const y = PAD + Math.floor(i / COLS) * (H + GAP);
+        ctx.save();
+        roundedRect(ctx, x, y, W, H, RADIUS);
+        ctx.clip();
+        ctx.drawImage(img, x, y, W, H);
+        ctx.restore();
+      });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "reality-fracture-" + b.seed + ".jpg";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      alert("Impossible de générer l'image : " + err.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  function render() {
+    const root = document.getElementById("boosters");
+    root.innerHTML = "";
+    if (!booster) {
+      const d = el("div", "panel empty");
+      d.textContent = "Aucun booster ouvert. Cliquez sur « Ouvrir un nouveau booster ».";
+      root.appendChild(d);
+      return;
+    }
+    const panel = el("div", "panel booster");
+    const title = el("div", "booster-title");
+    const share = el("button");
+    share.textContent = "Copier le lien";
+    share.addEventListener("click", () => copyLink(share));
+    title.appendChild(share);
+    const dl = el("button");
+    dl.textContent = "Télécharger l'image";
+    dl.addEventListener("click", () => downloadImage(booster, dl));
+    title.appendChild(dl);
+    panel.appendChild(title);
+    const grid = el("div", "grid");
+    for (const s of displayCards(booster)) grid.appendChild(cardNode(s));
+    panel.appendChild(grid);
+    root.appendChild(panel);
+  }
+
+  // ---- seed in the URL: index.html#<seed> identifies a booster -------------
+
+  function seedFromUrl() {
+    const h = location.hash.slice(1);
+    try { return decodeURIComponent(h); } catch (err) { return h; }
+  }
+  function newSeed() {
+    return crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+  }
+  function shareUrl() {
+    return location.href.split("#")[0] + "#" + encodeURIComponent(booster.seed);
+  }
+
+  // Copies text to the clipboard. The Clipboard API needs a secure context
+  // (HTTPS, localhost or a local file); on plain HTTP the page falls back to
+  // the legacy execCommand path, which still works in every browser.
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (err) { /* try the fallback */ }
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+
+  // Feedback stays in the button. The address bar already holds the link, so
+  // on the rare failure the button just says where to copy it from.
+  async function copyLink(button) {
+    const ok = await copyText(shareUrl());
+    button.textContent = ok ? "Lien copié !" : "Copiez l'adresse de la page";
+    button.disabled = true;
+    setTimeout(() => { button.textContent = "Copier le lien"; button.disabled = false; }, ok ? 1500 : 3000);
+  }
+
+  // Opens the booster for `seed` (a new random seed when omitted). Each
+  // opening replaces the booster on display and hides the ratings, so the new
+  // booster starts in rarity order. The seed goes in the URL fragment without
+  // adding a history entry, so the address bar is always a shareable link.
+  function open(seed) {
+    seed = seed || newSeed();
+    showRatings = false;
+    document.getElementById("toggleRatings").classList.remove("active");
+    booster = { seed, cards: sortCards(SIM.openBooster(POOLS, SIM.rng(seed))) };
+    if (seedFromUrl() !== seed) location.replace("#" + encodeURIComponent(seed));
+    render();
+  }
+
+  document.getElementById("open1").addEventListener("click", () => open());
+  // A shared link pasted into a tab that already shows the page only changes
+  // the fragment, so follow it here.
+  window.addEventListener("hashchange", () => {
+    const seed = seedFromUrl();
+    if (seed && seed !== booster.seed) open(seed);
+  });
+  document.getElementById("toggleRatings").addEventListener("click", (e) => {
+    showRatings = !showRatings;
+    e.currentTarget.classList.toggle("active", showRatings);
+    render();
+  });
+  document.getElementById("modal").addEventListener("click", (e) => e.currentTarget.classList.remove("open"));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.getElementById("modal").classList.remove("open"); });
+
+  renderCredit();
+  open(seedFromUrl());
+})();
+</script>
+</body>
+</html>

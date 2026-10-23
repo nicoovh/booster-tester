@@ -1,0 +1,5 @@
+# 17Lands raw datasets (about 100 MB, downloaded by fetch_ratings.py)
+data_17lands/
+
+# Python
+__pycache__/
