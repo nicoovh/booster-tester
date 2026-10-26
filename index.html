@@ -38,15 +38,17 @@
   .booster-title button { font-size: 13px; padding: 5px 10px; }
   .booster-title button:disabled { opacity: .6; cursor: wait; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-  .card { position: relative; cursor: zoom-in; }
+  .card { position: relative; cursor: zoom-in; transition: transform .15s ease; }
+  .card:hover { transform: scale(1.4); z-index: 5; }
+  .card:hover img { box-shadow: 0 8px 24px rgba(0,0,0,.7); }
   .card img { width: 100%; aspect-ratio: 488 / 680; display: block; border-radius: 10px; background: #0b0d12; }
   .tag.foil {
     position: absolute; bottom: 8px; left: 8px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
     color: #fff; background: linear-gradient(90deg, #d53f8c, #d69e2e, #38a169, #3182ce); box-shadow: 0 1px 4px rgba(0,0,0,.6);
   }
   .tag.rating {
-    position: absolute; top: 8px; left: 8px; right: 8px; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 8px;
-    color: #fff; background: rgba(0,0,0,.75); box-shadow: 0 1px 4px rgba(0,0,0,.6); line-height: 1.25;
+    display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 8px;
+    color: #fff; background: var(--panel-2); line-height: 1.25;
   }
   .tag.rating small { display: block; font-weight: 400; font-size: 11px; color: #d6d9e3; }
   .tag.rating.none { color: #b5b9c7; }
@@ -229,7 +231,7 @@
     }
     if (showRatings) {
       const tag = ratingNode(s.card);
-      if (tag) node.appendChild(tag);
+      if (tag) node.insertBefore(tag, img);
     }
     node.addEventListener("click", () => openModal(s.card));
     return node;
